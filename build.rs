@@ -1,3 +1,5 @@
+#[macro_use] extern crate stopwords;
+
 use walkdir::{DirEntry, WalkDir};
 use bloomfilter::Bloom;
 
@@ -10,6 +12,8 @@ use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
 
+use stopwords::{Spark, Language, Stopwords};
+
 #[path = "src/types.rs"]
 mod types;
 
@@ -17,6 +21,7 @@ use crate::types::Storage;
 
 fn main() -> Result<(), Box<Error>> {
     let input_dir = env::var("INPUT_DIR")?;
+
     let filters = build(input_dir)?;
     let storage = Storage::from(filters);
     fs::write("storage", storage.to_bytes()?)?;
@@ -37,6 +42,10 @@ pub fn generate_filters(
     posts: HashMap<PathBuf, String>,
 ) -> Result<HashMap<PathBuf, Bloom>, Box<Error>> {
     println!("Generate filters");
+
+    // avoid storing the stop words in the bloom filters
+    let stops: HashSet<_> = Spark::stopwords(Language::English).unwrap().iter().collect();
+
     let split_posts: HashMap<PathBuf, HashSet<String>> = posts
         .into_iter()
         .map(|(post, content)| {
@@ -46,6 +55,7 @@ pub fn generate_filters(
                 content
                     .split_whitespace()
                     .map(str::to_lowercase)
+                    .filter(|s| !stops.contains(&&s[..]))
                     .collect::<HashSet<String>>(),
             )
         })
