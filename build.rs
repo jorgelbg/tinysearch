@@ -35,7 +35,7 @@ fn build(corpus_path: String) -> Result<HashMap<PathBuf, Bloom>, Box<Error>> {
 }
 
 // Read all posts and generate Bloomfilters from them.
-// Create a dictionary of {"post name": "lowercase word set"}. 
+// Create a dictionary of {"post name": "lowercase word set"}.
 // split_posts = {name: set(re.split("\W+", contents.lower())) for name, contents in posts.items()}
 #[no_mangle]
 pub fn generate_filters(
@@ -55,7 +55,7 @@ pub fn generate_filters(
                 content
                     .split_whitespace()
                     .map(str::to_lowercase)
-                    .filter(|s| !stops.contains(&&s[..]))
+                    .filter(|s| !stops.contains(&s.as_str()))
                     .collect::<HashSet<String>>(),
             )
         })

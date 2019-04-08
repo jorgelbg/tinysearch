@@ -19,6 +19,18 @@ struct ExportedBloomFilter {
 type ExportedBloomFilters = HashMap<PathBuf, ExportedBloomFilter>;
 pub type Filters = HashMap<PathBuf, Bloom>;
 
+pub trait Score {
+    fn score(&self, terms: &HashSet<String>) -> u32;
+}
+
+// scores a given bloom filter given a set of terms
+impl Score for Bloom {
+    fn score(&self, terms: &HashSet<String>) -> u32 {
+        return terms.iter().filter(|term| self.check(term)).count() as u32;
+    }
+}
+
+
 pub struct Storage {
     pub filters: Filters,
 }
